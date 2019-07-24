@@ -6,13 +6,13 @@ import org.simpleframework.xml.Root
 import java.io.Serializable
 
 @Root(name = "item", strict = false)
-class RssFeedItem(
+data class RssFeedItem(
     @Element(name = "title", required = true)
     val title: String,
     @Element(name = "description", required = true)
     val description: String,
     @Element(name = "pubDate", required = true)
-    val publicationDate: String) : Serializable {
+    val publicationDate: String) {
 
     fun isEqualTo(o: RssFeedItem): Boolean {
         return o.title == title &&

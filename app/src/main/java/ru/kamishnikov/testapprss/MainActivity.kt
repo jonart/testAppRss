@@ -19,11 +19,11 @@ class MainActivity : AppCompatActivity() {
                 it.channel?.itemList?.get(0)?.title
                  }
             .onErrorReturn {
-               Log.d("RX", "onErrorReturn")
-                error("message")
+                Log.e("RX", it.toString())
+                error("errorMessage")
             }
             .subscribe(Consumer {
                 Log.d("RX", "onSuccess")
-            }, Consumer { Log.d("RX", "onError") })
+            }, Consumer { Log.e("RX", it.toString()) })
     }
 }
