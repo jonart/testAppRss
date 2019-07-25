@@ -49,9 +49,9 @@ dependencies {
     implementation 'com.github.faruktoptas:RetrofitRssConverterFactory:0.1.0'
 
     //Room
-    implementation 'android.arch.persistence.room:rxjava2:1.1.1'
-    implementation "android.arch.persistence.room:runtime:1.1.1"
-    kapt "android.arch.persistence.room:compiler:1.1.1"
+    implementation "androidx.room:room-runtime:2.1.0"
+    implementation "androidx.room:room-rxjava2:2.1.0"
+    kapt "androidx.room:room-compiler:2.1.0"
 
     //Stetho
     implementation 'com.facebook.stetho:stetho-okhttp3:1.5.1'

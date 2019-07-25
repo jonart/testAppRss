@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import io.reactivex.Flowable
 import io.reactivex.Single
 
 @Dao
@@ -22,7 +23,7 @@ interface NewsDao {
     fun getNewsById(id: Int): Single<NewsEntity>
 
     @Query("SELECT * FROM news")
-    fun getAllNews(): List<NewsEntity>
+    fun getAllNews(): Single<List<NewsEntity>>
 
     @Query("DELETE FROM news")
     fun deleteAllNews()

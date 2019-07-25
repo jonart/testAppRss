@@ -7,8 +7,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.kamishnikov.testapprss.App
@@ -16,6 +20,7 @@ import ru.kamishnikov.testapprss.R
 import ru.kamishnikov.testapprss.data.FormatConverter
 import ru.kamishnikov.testapprss.data.db.NewsDao
 import ru.kamishnikov.testapprss.data.db.NewsEntity
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,46 +42,51 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun getDataFromInternet() {
-        if(isOnline()) {
-            disposable.add(App.restApi.getRss("rss")
-                .map { FormatConverter.map(it) }
-                .subscribeOn(Schedulers.io())
-                .doOnSuccess { newsItem ->
-                    getNewsDao().deleteAllNews()
-                    newsItem.let {
-                        getNewsDao().insertAllNews(it)
-                        news = getNewsDao().getAllNews()
-                    }
-                    swipe_refresh.isRefreshing = false
+    private fun getDataFromInternet() = if(isOnline()) {
+        disposable.add(App.restApi.getRss("rss")
+            .map { FormatConverter.map(it) }
+            .subscribeOn(Schedulers.io())
+            .doOnSuccess { newsItem ->
+                getNewsDao().deleteAllNews()
+                newsItem.let {
+                    getNewsDao().insertAllNews(it)
+                    news = getNewsDao().news
                 }
-                .onErrorReturn {
-                    Log.d("TAG", it.message)
-                    news = getNewsDao().getAllNews()
-                    swipe_refresh.isRefreshing = false
-                    news
+            }
+            .onErrorReturn {
+                Log.d("TAG", it.message)
+                news = getNewsDao().news
+                news
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                news?.let {
+                    showNews()
                 }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    news?.let {
-                        showNews(it)
-                    }
-                }, {
-                    Log.d("TAG", it.message)
-                })
-            )
-            swipe_refresh.isRefreshing = false
+            }, {
+                Log.d("TAG", it.message)
+            })
+        )
+        swipe_refresh.isRefreshing = false
 
-        }
-        else{
-            Toast.makeText(this,"Интернет-подключение отсутствует",Toast.LENGTH_LONG).show()
-            swipe_refresh.isRefreshing = false
-        }
+    }
+    else{
+        Toast.makeText(this,"Интернет-подключение отсутствует",Toast.LENGTH_LONG).show()
+        disposable.add(getNewsDao().getAllNews()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                news = it
+                showNews()
+            }, {Log.d("TAG", it.message)}
+            )
+        )
+        swipe_refresh.isRefreshing = false
     }
 
-    private fun showNews(it: List<NewsEntity>?) {
+    private fun showNews() {
         news_recycler.adapter = mAdapter
-        mAdapter.addData(it as MutableList<NewsEntity>)
+        mAdapter.addData(news as MutableList<NewsEntity>)
         swipe_refresh.isRefreshing = false
     }
 
